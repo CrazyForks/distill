@@ -123,6 +123,20 @@ Response:
 }
 ```
 
+**With pre-computed embeddings (no OpenAI key needed):**
+
+```bash
+curl -X POST http://localhost:8080/v1/dedupe \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chunks": [
+      {"id": "1", "text": "React is...", "embedding": [0.1, 0.2, ...]},
+      {"id": "2", "text": "React.js is...", "embedding": [0.11, 0.21, ...]},
+      {"id": "3", "text": "Vue is...", "embedding": [0.9, 0.8, ...]}
+    ]
+  }'
+```
+
 ### 2. With Vector Database
 
 Connect to Pinecone or Qdrant for retrieval + deduplication:
@@ -181,11 +195,31 @@ distill query     # Test a query from command line
 ### Environment Variables
 
 ```bash
-OPENAI_API_KEY      # Required for text embeddings
+OPENAI_API_KEY      # For text → embedding conversion (see note below)
 PINECONE_API_KEY    # For Pinecone backend
 QDRANT_URL          # For Qdrant backend (default: localhost:6334)
 DISTILL_API_KEYS    # Comma-separated API keys for auth (optional)
 ```
+
+### About OpenAI API Key
+
+**When you need it:**
+- Sending text chunks without pre-computed embeddings
+- Using text queries with vector database retrieval
+- Using the MCP server with text-based tools
+
+**When you DON'T need it:**
+- Sending chunks with pre-computed embeddings (include `"embedding": [...]` in your request)
+- Using Distill purely for clustering/deduplication on existing vectors
+
+**What it's used for:**
+- Converts text to embeddings using `text-embedding-3-small` model
+- ~$0.00002 per 1K tokens (very cheap)
+- Embeddings are used only for similarity comparison, never stored
+
+**Alternatives:**
+- Bring your own embeddings — include `"embedding"` field in chunks
+- Self-host an embedding model — set `EMBEDDING_API_URL` to your endpoint
 
 ### Parameters
 
@@ -198,11 +232,16 @@ DISTILL_API_KEYS    # Comma-separated API keys for auth (optional)
 
 ## Self-Hosting
 
-### Docker
+### Docker (Recommended)
+
+Use the pre-built image from GitHub Container Registry:
 
 ```bash
-docker build -t distill .
-docker run -p 8080:8080 -e OPENAI_API_KEY=your-key distill api
+# Pull and run
+docker run -p 8080:8080 -e OPENAI_API_KEY=your-key ghcr.io/siddhant-k-code/distill:latest
+
+# Or with a specific version
+docker run -p 8080:8080 -e OPENAI_API_KEY=your-key ghcr.io/siddhant-k-code/distill:v0.1.0
 ```
 
 ### Docker Compose
@@ -210,6 +249,13 @@ docker run -p 8080:8080 -e OPENAI_API_KEY=your-key distill api
 ```bash
 # Start Distill + Qdrant (local vector DB)
 docker-compose up
+```
+
+### Build from Source
+
+```bash
+docker build -t distill .
+docker run -p 8080:8080 -e OPENAI_API_KEY=your-key distill api
 ```
 
 ### Fly.io
