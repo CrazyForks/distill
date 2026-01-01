@@ -108,12 +108,12 @@ type ChunkResponse struct {
 
 // StatsResponse contains processing statistics.
 type StatsResponse struct {
-	Retrieved         int     `json:"retrieved"`
-	Clustered         int     `json:"clustered"`
-	Returned          int     `json:"returned"`
-	RetrievalLatencyMs int64  `json:"retrieval_latency_ms"`
+	Retrieved           int   `json:"retrieved"`
+	Clustered           int   `json:"clustered"`
+	Returned            int   `json:"returned"`
+	RetrievalLatencyMs  int64 `json:"retrieval_latency_ms"`
 	ClusteringLatencyMs int64 `json:"clustering_latency_ms"`
-	TotalLatencyMs    int64   `json:"total_latency_ms"`
+	TotalLatencyMs      int64 `json:"total_latency_ms"`
 }
 
 func runServe(cmd *cobra.Command, args []string) error {

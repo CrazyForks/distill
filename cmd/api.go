@@ -84,9 +84,9 @@ type DedupeStats struct {
 
 // APIServer holds the API server state.
 type APIServer struct {
-	embedder   *openai.Client
-	validKeys  map[string]bool
-	hasAuth    bool
+	embedder  *openai.Client
+	validKeys map[string]bool
+	hasAuth   bool
 }
 
 func runAPI(cmd *cobra.Command, args []string) error {

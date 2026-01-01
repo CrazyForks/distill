@@ -393,12 +393,12 @@ func (m *MCPServer) registerResources(s *server.MCPServer) {
 	s.AddResource(configResource, func(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 		config := map[string]interface{}{
 			"defaults": map[string]interface{}{
-				"target_k":   m.cfg.TargetK,
+				"target_k":     m.cfg.TargetK,
 				"over_fetch_k": m.cfg.OverFetchK,
-				"threshold":  m.cfg.ClusterThreshold,
-				"lambda":     m.cfg.MMRLambda,
+				"threshold":    m.cfg.ClusterThreshold,
+				"lambda":       m.cfg.MMRLambda,
 			},
-			"backend_configured": m.broker != nil,
+			"backend_configured":  m.broker != nil,
 			"embedder_configured": m.embedder != nil,
 		}
 		configJSON, _ := json.MarshalIndent(config, "", "  ")
@@ -601,12 +601,12 @@ func (m *MCPServer) handleRetrieveDeduplicated(ctx context.Context, request mcp.
 	result := map[string]interface{}{
 		"chunks": formatChunksForResponse(brokerResult.Chunks),
 		"stats": map[string]interface{}{
-			"retrieved":            brokerResult.Stats.Retrieved,
-			"clustered":            brokerResult.Stats.Clustered,
-			"returned":             brokerResult.Stats.Returned,
-			"retrieval_latency_ms": brokerResult.Stats.RetrievalLatency.Milliseconds(),
+			"retrieved":             brokerResult.Stats.Retrieved,
+			"clustered":             brokerResult.Stats.Clustered,
+			"returned":              brokerResult.Stats.Returned,
+			"retrieval_latency_ms":  brokerResult.Stats.RetrievalLatency.Milliseconds(),
 			"clustering_latency_ms": brokerResult.Stats.ClusteringLatency.Milliseconds(),
-			"total_latency_ms":     brokerResult.Stats.TotalLatency.Milliseconds(),
+			"total_latency_ms":      brokerResult.Stats.TotalLatency.Milliseconds(),
 		},
 	}
 
@@ -687,11 +687,11 @@ func (m *MCPServer) handleAnalyzeRedundancy(ctx context.Context, request mcp.Cal
 		}
 
 		clusterDetails[i] = map[string]interface{}{
-			"cluster_id":    cluster.ID,
-			"size":          cluster.Size(),
-			"member_ids":    memberIDs,
-			"member_texts":  memberTexts,
-			"is_redundant":  cluster.Size() > 1,
+			"cluster_id":   cluster.ID,
+			"size":         cluster.Size(),
+			"member_ids":   memberIDs,
+			"member_texts": memberTexts,
+			"is_redundant": cluster.Size() > 1,
 		}
 	}
 
@@ -705,12 +705,12 @@ func (m *MCPServer) handleAnalyzeRedundancy(ctx context.Context, request mcp.Cal
 
 	result := map[string]interface{}{
 		"summary": map[string]interface{}{
-			"total_chunks":      len(inputChunks),
-			"cluster_count":     clusterResult.ClusterCount,
-			"redundant_chunks":  redundantChunks,
-			"redundancy_pct":    float64(redundantChunks) / float64(len(inputChunks)) * 100,
-			"unique_concepts":   clusterResult.ClusterCount,
-			"threshold_used":    threshold,
+			"total_chunks":     len(inputChunks),
+			"cluster_count":    clusterResult.ClusterCount,
+			"redundant_chunks": redundantChunks,
+			"redundancy_pct":   float64(redundantChunks) / float64(len(inputChunks)) * 100,
+			"unique_concepts":  clusterResult.ClusterCount,
+			"threshold_used":   threshold,
 		},
 		"clusters": clusterDetails,
 		"recommendation": fmt.Sprintf(

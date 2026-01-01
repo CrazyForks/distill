@@ -9,11 +9,11 @@ import (
 
 // Common errors returned by retrievers.
 var (
-	ErrNotFound       = errors.New("not found")
-	ErrInvalidQuery   = errors.New("invalid query: must provide query text or embedding")
+	ErrNotFound         = errors.New("not found")
+	ErrInvalidQuery     = errors.New("invalid query: must provide query text or embedding")
 	ErrConnectionFailed = errors.New("connection to vector database failed")
-	ErrRateLimited    = errors.New("rate limited by vector database")
-	ErrTimeout        = errors.New("query timeout")
+	ErrRateLimited      = errors.New("rate limited by vector database")
+	ErrTimeout          = errors.New("query timeout")
 )
 
 // Retriever defines the interface for vector database query operations.
