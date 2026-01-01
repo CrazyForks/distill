@@ -1,6 +1,7 @@
 # Distill
 
 [![CI](https://github.com/Siddhant-K-code/distill/actions/workflows/ci.yml/badge.svg)](https://github.com/Siddhant-K-code/distill/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Siddhant-K-code/distill)](https://github.com/Siddhant-K-code/distill/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Siddhant-K-code/distill)](https://goreportcard.com/report/github.com/Siddhant-K-code/distill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -42,17 +43,22 @@ Download from [GitHub Releases](https://github.com/Siddhant-K-code/distill/relea
 
 ```bash
 # macOS (Apple Silicon)
-curl -L https://github.com/Siddhant-K-code/distill/releases/latest/download/distill_Darwin_arm64.tar.gz | tar xz
+curl -sL $(curl -s https://api.github.com/repos/Siddhant-K-code/distill/releases/latest | grep "browser_download_url.*darwin_arm64.tar.gz" | cut -d '"' -f 4) | tar xz
 
 # macOS (Intel)
-curl -L https://github.com/Siddhant-K-code/distill/releases/latest/download/distill_Darwin_amd64.tar.gz | tar xz
+curl -sL $(curl -s https://api.github.com/repos/Siddhant-K-code/distill/releases/latest | grep "browser_download_url.*darwin_amd64.tar.gz" | cut -d '"' -f 4) | tar xz
 
 # Linux (amd64)
-curl -L https://github.com/Siddhant-K-code/distill/releases/latest/download/distill_Linux_amd64.tar.gz | tar xz
+curl -sL $(curl -s https://api.github.com/repos/Siddhant-K-code/distill/releases/latest | grep "browser_download_url.*linux_amd64.tar.gz" | cut -d '"' -f 4) | tar xz
+
+# Linux (arm64)
+curl -sL $(curl -s https://api.github.com/repos/Siddhant-K-code/distill/releases/latest | grep "browser_download_url.*linux_arm64.tar.gz" | cut -d '"' -f 4) | tar xz
 
 # Move to PATH
 sudo mv distill /usr/local/bin/
 ```
+
+Or download directly from the [releases page](https://github.com/Siddhant-K-code/distill/releases/latest).
 
 ### Go Install
 
