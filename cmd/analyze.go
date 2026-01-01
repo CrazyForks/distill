@@ -122,7 +122,7 @@ func loadVectorsFromFile(filePath string) ([]types.Vector, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var vectors []types.Vector
 	scanner := bufio.NewScanner(file)

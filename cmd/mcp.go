@@ -196,7 +196,7 @@ func runMCP(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create retriever: %w", err)
 		}
-		defer ret.Close()
+		defer func() { _ = ret.Close() }()
 
 		// Create broker with retriever
 		if mcpSrv.embedder != nil {
@@ -204,7 +204,7 @@ func runMCP(cmd *cobra.Command, args []string) error {
 		} else {
 			mcpSrv.broker = contextlab.NewBroker(ret, brokerCfg)
 		}
-		defer mcpSrv.broker.Close()
+		defer func() { _ = mcpSrv.broker.Close() }()
 	}
 
 	// Create MCP server with capabilities

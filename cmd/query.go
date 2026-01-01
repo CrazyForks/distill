@@ -148,7 +148,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create retriever: %w", err)
 	}
-	defer ret.Close()
+	defer func() { _ = ret.Close() }()
 
 	// Create embedding provider
 	embedder, err := openai.NewClient(openai.Config{
@@ -212,7 +212,7 @@ func runQuery(cmd *cobra.Command, args []string) error {
 		}
 
 		broker := contextlab.NewBrokerWithEmbedder(ret, embedder, brokerCfg)
-		defer broker.Close()
+		defer func() { _ = broker.Close() }()
 
 		req := &types.RetrievalRequest{
 			QueryEmbedding: embedding,

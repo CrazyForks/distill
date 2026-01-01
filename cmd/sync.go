@@ -155,7 +155,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to Pinecone: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Create ingestion pipeline
 	ingestCfg := ingest.Config{

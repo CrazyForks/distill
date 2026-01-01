@@ -186,7 +186,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create retriever: %w", err)
 	}
-	defer ret.Close()
+	defer func() { _ = ret.Close() }()
 
 	// Create embedding provider if OpenAI key is provided
 	var embedder retriever.EmbeddingProvider
@@ -218,7 +218,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	} else {
 		broker = contextlab.NewBroker(ret, brokerCfg)
 	}
-	defer broker.Close()
+	defer func() { _ = broker.Close() }()
 
 	// Create server
 	server := &Server{

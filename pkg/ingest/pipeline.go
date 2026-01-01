@@ -99,7 +99,7 @@ func (p *Pipeline) IngestFile(ctx context.Context, filePath string, progress Pro
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	return p.IngestReader(ctx, file, progress)
 }
