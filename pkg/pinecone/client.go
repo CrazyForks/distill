@@ -178,7 +178,7 @@ func (c *Client) Close() error {
 
 // convertMetadata converts map[string]interface{} to Pinecone Struct metadata.
 func convertMetadata(m map[string]interface{}) *structpb.Struct {
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 

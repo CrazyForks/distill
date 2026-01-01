@@ -68,7 +68,7 @@ func NewClient(ctx context.Context, cfg Config) (*Client, error) {
 
 	// Connect to Qdrant
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPCPort)
-	conn, err := grpc.DialContext(ctx, addr, opts...)
+	conn, err := grpc.NewClient(addr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Qdrant at %s: %w", addr, err)
 	}
@@ -148,7 +148,7 @@ func (c *Client) Query(ctx context.Context, req *types.RetrievalRequest) (*types
 		// Extract embedding if included
 		if point.Vectors != nil {
 			if vec := point.Vectors.GetVector(); vec != nil {
-				chunk.Embedding = vec.Data
+				chunk.Embedding = vec.GetData() //nolint:staticcheck // Qdrant SDK deprecation, no replacement yet
 			}
 		}
 
@@ -218,7 +218,7 @@ func (c *Client) QueryByID(ctx context.Context, id string, topK int, namespace s
 	var vector []float32
 	if point.Vectors != nil {
 		if vec := point.Vectors.GetVector(); vec != nil {
-			vector = vec.Data
+			vector = vec.GetData() //nolint:staticcheck // Qdrant SDK deprecation, no replacement yet
 		}
 	}
 

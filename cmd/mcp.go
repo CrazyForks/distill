@@ -241,7 +241,7 @@ func runMCP(cmd *cobra.Command, args []string) error {
 		// Health check endpoint
 		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(`{"status":"ok","server":"govectorsync-mcp"}`))
+			_, _ = w.Write([]byte(`{"status":"ok","server":"govectorsync-mcp"}`))
 		})
 
 		// MCP endpoint with stateful sessions

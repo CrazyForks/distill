@@ -100,11 +100,8 @@ func (c *Client) Query(ctx context.Context, req *types.RetrievalRequest) (*types
 		IncludeMetadata: req.IncludeMetadata,
 	}
 
-	// Use namespace from request or default
-	namespace := req.Namespace
-	if namespace == "" {
-		namespace = c.cfg.DefaultNamespace
-	}
+	// Note: namespace is set at connection level in NewClient
+	// Per-query namespace override would require creating a new connection
 
 	// Execute query
 	resp, err := c.idxConn.QueryByVectorValues(ctx, queryReq)

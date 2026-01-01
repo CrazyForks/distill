@@ -41,10 +41,10 @@ func init() {
 	analyzeCmd.Flags().IntP("workers", "w", 0, "number of parallel workers (0 = NumCPU)")
 	analyzeCmd.Flags().Int64("seed", 0, "random seed for reproducibility (0 = random)")
 
-	analyzeCmd.MarkFlagRequired("file")
+	_ = analyzeCmd.MarkFlagRequired("file")
 
-	viper.BindPFlag("analyze.threshold", analyzeCmd.Flags().Lookup("threshold"))
-	viper.BindPFlag("analyze.clusters", analyzeCmd.Flags().Lookup("clusters"))
+	_ = viper.BindPFlag("analyze.threshold", analyzeCmd.Flags().Lookup("threshold"))
+	_ = viper.BindPFlag("analyze.clusters", analyzeCmd.Flags().Lookup("clusters"))
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) error {

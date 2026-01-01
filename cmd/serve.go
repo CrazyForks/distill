@@ -62,8 +62,8 @@ func init() {
 	serveCmd.Flags().Bool("enable-mmr", true, "Enable MMR re-ranking")
 
 	// Bind to viper
-	viper.BindPFlag("serve.port", serveCmd.Flags().Lookup("port"))
-	viper.BindPFlag("serve.host", serveCmd.Flags().Lookup("host"))
+	_ = viper.BindPFlag("serve.port", serveCmd.Flags().Lookup("port"))
+	_ = viper.BindPFlag("serve.host", serveCmd.Flags().Lookup("host"))
 }
 
 // Server holds the HTTP server state.
@@ -359,18 +359,18 @@ func (s *Server) handleRetrieve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	cfg := s.broker.GetConfig()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"config": map[string]interface{}{
 			"over_fetch_k": cfg.OverFetchK,
 			"target_k":     cfg.TargetK,

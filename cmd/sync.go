@@ -35,7 +35,7 @@ func init() {
 
 	// File input
 	syncCmd.Flags().StringP("file", "f", "", "path to JSONL file containing vectors (required)")
-	syncCmd.MarkFlagRequired("file")
+	_ = syncCmd.MarkFlagRequired("file")
 
 	// Pinecone settings
 	syncCmd.Flags().StringP("index", "i", "", "Pinecone index name (required)")
@@ -52,9 +52,9 @@ func init() {
 	syncCmd.Flags().IntP("batch-size", "b", 100, "vectors per batch (Pinecone optimal: 100)")
 
 	// Bind to viper
-	viper.BindPFlag("api_key", syncCmd.Flags().Lookup("api-key"))
-	viper.BindPFlag("index", syncCmd.Flags().Lookup("index"))
-	viper.BindPFlag("namespace", syncCmd.Flags().Lookup("namespace"))
+	_ = viper.BindPFlag("api_key", syncCmd.Flags().Lookup("api-key"))
+	_ = viper.BindPFlag("index", syncCmd.Flags().Lookup("index"))
+	_ = viper.BindPFlag("namespace", syncCmd.Flags().Lookup("namespace"))
 }
 
 func runSync(cmd *cobra.Command, args []string) error {
@@ -185,7 +185,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 		current := stats.UploadedVectors + stats.FailedVectors
 		delta := current - lastUploaded
 		if delta > 0 {
-			bar.Add64(delta)
+			_ = bar.Add64(delta)
 			lastUploaded = current
 		}
 	}
@@ -197,7 +197,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("ingestion failed: %w", err)
 	}
 
-	bar.Finish()
+	_ = bar.Finish()
 	fmt.Fprintln(os.Stderr)
 
 	// Print summary
