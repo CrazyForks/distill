@@ -27,9 +27,9 @@ LLM outputs are unreliable because context is polluted. "Garbage in, garbage out
 
 30-40% of context assembled from multiple sources is semantically redundant. Same information from docs, code, memory, and tools competing for attention. This leads to:
 
-- **Non-deterministic outputs** — Same workflow, different results
-- **Confused reasoning** — Signal diluted by repetition
-- **Production failures** — Works in demos, breaks at scale
+- **Non-deterministic outputs** - Same workflow, different results
+- **Confused reasoning** - Signal diluted by repetition
+- **Production failures** - Works in demos, breaks at scale
 
 You can't fix unreliable outputs with better prompts. You need to fix the context that goes in.
 
@@ -457,9 +457,9 @@ W3C Trace Context propagation is enabled by default for cross-service tracing.
 
 Reduces token count while preserving meaning. Three strategies:
 
-- **Extractive** — Scores sentences by position, keyword density, and length; keeps the most salient spans
-- **Placeholder** — Replaces verbose JSON, XML, and table outputs with compact structural summaries
-- **Pruner** — Strips filler phrases, redundant qualifiers, and boilerplate patterns
+- **Extractive** - Scores sentences by position, keyword density, and length; keeps the most salient spans
+- **Placeholder** - Replaces verbose JSON, XML, and table outputs with compact structural summaries
+- **Pruner** - Strips filler phrases, redundant qualifiers, and boilerplate patterns
 
 Strategies can be chained via `compress.Pipeline`. Configure with target reduction ratio (e.g., 0.3 = keep 30% of original).
 
@@ -467,9 +467,9 @@ Strategies can be chained via `compress.Pipeline`. Configure with target reducti
 
 KV cache for repeated context patterns (system prompts, tool definitions, boilerplate). Sub-millisecond retrieval for cache hits.
 
-- **MemoryCache** — In-memory LRU with TTL, configurable size limits (entries and bytes), background cleanup
-- **PatternDetector** — Identifies cacheable content: system prompts, tool/function definitions, code blocks
-- **RedisCache** — Interface for distributed deployments (requires external Redis)
+- **MemoryCache** - In-memory LRU with TTL, configurable size limits (entries and bytes), background cleanup
+- **PatternDetector** - Identifies cacheable content: system prompts, tool/function definitions, code blocks
+- **RedisCache** - Interface for distributed deployments (requires external Redis)
 
 ## Architecture
 
@@ -574,6 +574,55 @@ Works with your existing AI stack:
 - **AI Assistants:** Claude Desktop, Cursor (via MCP)
 - **Observability:** Prometheus, Grafana, OpenTelemetry (Jaeger, Tempo)
 
+## FAQ
+
+<details>
+<summary>Is this just removing exact duplicates?</summary>
+<p>No. Exact dedup is trivial (hash comparison). Distill does <em>semantic</em> dedup - it identifies chunks that convey the same information in different words. Two paragraphs explaining "how JWT auth works" with different wording will be clustered together, and only the best one is kept.</p>
+</details>
+
+<details>
+<summary>Why agglomerative clustering instead of K-Means?</summary>
+<p>K-Means requires specifying K upfront and assumes spherical clusters. Agglomerative clustering adapts to the data - it stops merging when the distance between the closest clusters exceeds the threshold. If your 20 chunks have 8 natural groups, you get 8 clusters. If they have 15, you get 15. No tuning required.</p>
+</details>
+
+<details>
+<summary>What does the threshold of 0.15 mean?</summary>
+<p>Cosine distance of 0.15 means cosine similarity of 0.85. Two chunks with 85%+ similarity are considered "saying the same thing." For code, use 0.10 (stricter). For prose, use 0.20 (looser).</p>
+</details>
+
+<details>
+<summary>Why cosine distance and not Euclidean?</summary>
+<p>OpenAI embeddings (and most embedding models) are normalized to unit length. For unit vectors, cosine distance and Euclidean distance are monotonically related, but cosine is more interpretable: 0 = identical direction, 1 = orthogonal, 2 = opposite. The threshold of 0.15 means "chunks whose embeddings point within ~22 degrees of each other."</p>
+</details>
+
+<details>
+<summary>How does compression work without an LLM?</summary>
+<p>Three rule-based strategies: (1) Extractive - scores sentences by position, length, and keyword signals, keeps the top ones. (2) Placeholder - detects JSON/XML/tables and replaces with structural summaries. (3) Pruner - removes filler phrases and intensifiers. No API calls needed.</p>
+</details>
+
+<details>
+<summary>How does Distill work with LangChain?</summary>
+<p>Three paths: (1) MCP - <code>distill mcp</code> exposes tools that become LangChain tools via <a href="https://github.com/langchain-ai/langchain-mcp-adapters">langchain-mcp-adapters</a>. (2) HTTP API - call <code>POST /v1/dedupe</code> as a post-processing step on retrieval results. (3) Python SDK (planned - <a href="https://github.com/Siddhant-K-code/distill/issues/5">#5</a>) - a <code>DistillRetriever</code> that wraps any LangChain retriever.</p>
+</details>
+
+<details>
+<summary>How is this different from LangChain's built-in MMR?</summary>
+<p>LangChain's <code>search_type="mmr"</code> is a single re-ranking step at the vector DB level. Distill runs a multi-stage pipeline: cache, agglomerative clustering, representative selection, compression, then MMR. The clustering step understands group structure, not just pairwise similarity.</p>
+</details>
+
+<details>
+<summary>What's the time complexity?</summary>
+<p>Distance matrix is O(N² x D) where N = chunks and D = embedding dimension. The merge loop is O(N³) worst case. For typical RAG inputs (N=20-50, D=1536), the full pipeline completes in ~12ms.</p>
+</details>
+
+<details>
+<summary>Why not just increase the context window?</summary>
+<p>Larger context windows don't solve redundancy. If you stuff 50 chunks into a 128K window and 20 say the same thing, the model still processes all of them. This wastes tokens, increases latency, and can confuse the model. Distill ensures the model sees unique, diverse chunks instead of overlapping ones.</p>
+</details>
+
+See [FAQ.md](FAQ.md) for the full list.
+
 ## Contributing
 
 Contributions welcome! Check the [open issues](https://github.com/Siddhant-K-code/distill/issues) for things to work on.
@@ -595,6 +644,7 @@ For commercial licensing, contact: siddhantkhare2694@gmail.com
 
 - [Website](https://distill.siddhantkhare.com)
 - [Playground](https://distill.siddhantkhare.com/playground)
+- [FAQ](FAQ.md)
 - [Blog Post](https://dev.to/siddhantkcode/the-engineering-guide-to-context-window-efficiency-202b)
 - [MCP Configuration](mcp/README.md)
 - [Book a Demo](https://meet.siddhantkhare.com)
