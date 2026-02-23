@@ -9,6 +9,7 @@ import (
 
 	"github.com/Siddhant-K-code/distill/pkg/contextlab"
 	"github.com/Siddhant-K-code/distill/pkg/embedding/openai"
+	"github.com/Siddhant-K-code/distill/pkg/memory"
 	"github.com/Siddhant-K-code/distill/pkg/retriever"
 	pcretriever "github.com/Siddhant-K-code/distill/pkg/retriever/pinecone"
 	qdretriever "github.com/Siddhant-K-code/distill/pkg/retriever/qdrant"
@@ -88,6 +89,10 @@ func init() {
 	mcpCmd.Flags().String("openai-key", "", "OpenAI API key for embeddings (or use OPENAI_API_KEY)")
 	mcpCmd.Flags().String("embedding-model", "text-embedding-3-small", "OpenAI embedding model")
 
+	// Memory store
+	mcpCmd.Flags().Bool("memory", false, "Enable persistent memory store")
+	mcpCmd.Flags().String("memory-db", "distill-memory.db", "SQLite database path for memory store")
+
 	// Default deduplication settings
 	mcpCmd.Flags().Int("over-fetch-k", 50, "Default over-fetch count")
 	mcpCmd.Flags().Int("target-k", 8, "Default target chunk count")
@@ -100,6 +105,7 @@ type MCPServer struct {
 	broker   *contextlab.Broker
 	embedder retriever.EmbeddingProvider
 	cfg      contextlab.BrokerConfig
+	memStore *memory.SQLiteStore
 }
 
 func runMCP(cmd *cobra.Command, args []string) error {
@@ -144,6 +150,20 @@ func runMCP(cmd *cobra.Command, args []string) error {
 	// Create MCP server wrapper
 	mcpSrv := &MCPServer{
 		cfg: brokerCfg,
+	}
+
+	// Create memory store (opt-in)
+	enableMemory, _ := cmd.Flags().GetBool("memory")
+	if enableMemory {
+		memDBPath, _ := cmd.Flags().GetString("memory-db")
+		memCfg := memory.DefaultConfig()
+		memCfg.DedupThreshold = threshold
+		memStore, err := memory.NewSQLiteStore(memDBPath, memCfg)
+		if err != nil {
+			return fmt.Errorf("failed to create memory store: %w", err)
+		}
+		defer func() { _ = memStore.Close() }()
+		mcpSrv.memStore = memStore
 	}
 
 	// Create embedding provider if OpenAI key is provided
@@ -347,6 +367,69 @@ whether to deduplicate. Returns cluster information and redundancy percentage.`)
 	)
 
 	s.AddTool(analyzeTool, m.handleAnalyzeRedundancy)
+
+	// Memory tools
+	if m.memStore != nil {
+		storeMemoryTool := mcp.NewTool("store_memory",
+			mcp.WithDescription(`Store context into persistent memory with automatic deduplication.
+
+Use this to save important context that should persist across sessions.
+Duplicate information is automatically detected and merged.`),
+			mcp.WithString("text",
+				mcp.Required(),
+				mcp.Description("Text content to store"),
+			),
+			mcp.WithString("source",
+				mcp.Description("Source of the memory (e.g., code_review, docs, conversation)"),
+			),
+			mcp.WithArray("tags",
+				mcp.Description("Tags for categorizing the memory"),
+			),
+			mcp.WithString("session_id",
+				mcp.Description("Session ID to associate with this memory"),
+			),
+		)
+		s.AddTool(storeMemoryTool, m.handleStoreMemory)
+
+		recallMemoryTool := mcp.NewTool("recall_memory",
+			mcp.WithDescription(`Recall relevant memories from persistent storage.
+
+Retrieves memories ranked by semantic relevance and recency.
+Use this to access context from previous sessions.`),
+			mcp.WithString("query",
+				mcp.Required(),
+				mcp.Description("Query text to search memories"),
+			),
+			mcp.WithArray("tags",
+				mcp.Description("Filter by tags"),
+			),
+			mcp.WithNumber("max_results",
+				mcp.Description("Maximum number of memories to return (default: 10)"),
+			),
+			mcp.WithNumber("max_tokens",
+				mcp.Description("Maximum token budget for returned memories (0 = unlimited)"),
+			),
+		)
+		s.AddTool(recallMemoryTool, m.handleRecallMemory)
+
+		forgetMemoryTool := mcp.NewTool("forget_memory",
+			mcp.WithDescription(`Remove memories matching the given criteria.
+
+Use this to clean up outdated or incorrect memories.`),
+			mcp.WithArray("ids",
+				mcp.Description("Memory IDs to remove"),
+			),
+			mcp.WithArray("tags",
+				mcp.Description("Remove all memories with these tags"),
+			),
+		)
+		s.AddTool(forgetMemoryTool, m.handleForgetMemory)
+
+		memoryStatsTool := mcp.NewTool("memory_stats",
+			mcp.WithDescription("Get statistics about the persistent memory store."),
+		)
+		s.AddTool(memoryStatsTool, m.handleMemoryStats)
+	}
 }
 
 // System prompt that guides AI assistants to use deduplication
@@ -742,3 +825,4 @@ func formatChunksForResponse(chunks []types.Chunk) []map[string]interface{} {
 	}
 	return result
 }
+
