@@ -2,6 +2,37 @@
 
 All notable changes to Distill are documented here.
 
+## [v0.3.0] - 2026-02-23
+
+Feature release adding persistent context memory, SSE streaming, OpenTelemetry tracing, and project documentation.
+
+### Added
+
+- **Persistent context memory store** (`pkg/memory`) — SQLite-backed memory that persists across agent sessions. Write-time deduplication via cosine similarity, recall ranked by `(1-w)*similarity + w*recency`, tag filtering via junction table, and token-budgeted results. Opt-in via `--memory` flag on `api` and `mcp` commands. ([#37](https://github.com/Siddhant-K-code/distill/pull/37), closes [#29](https://github.com/Siddhant-K-code/distill/issues/29))
+- **Hierarchical decay worker** — Background compression of aging memories: full text → summary (extractive, ~20%) → keywords (~5%) → evicted. Configurable ages via `distill.yaml`. Accessing a memory resets its decay clock. ([#37](https://github.com/Siddhant-K-code/distill/pull/37))
+- **Memory CLI** — `distill memory store/recall/forget/stats` commands for direct memory management. ([#37](https://github.com/Siddhant-K-code/distill/pull/37))
+- **Memory HTTP API** — `POST /v1/memory/store`, `/recall`, `/forget`, `GET /stats` endpoints. ([#37](https://github.com/Siddhant-K-code/distill/pull/37))
+- **Memory MCP tools** — `store_memory`, `recall_memory`, `forget_memory`, `memory_stats` tools for Claude Desktop, Cursor, and Amp. ([#37](https://github.com/Siddhant-K-code/distill/pull/37))
+- **SSE streaming dedup** (`pkg/sse`) — `POST /v1/dedupe/stream` endpoint with per-stage progress events (embedding, clustering, selection, MMR). ([#22](https://github.com/Siddhant-K-code/distill/pull/22))
+- **OpenTelemetry tracing** (`pkg/telemetry`) — Distributed tracing with OTLP and stdout exporters. Each pipeline stage instrumented as a separate span. W3C Trace Context propagation. ([#21](https://github.com/Siddhant-K-code/distill/pull/21))
+- **FAQ** (`FAQ.md`) — 20 Q&As covering algorithms, integrations, deployment, and cost. ([#36](https://github.com/Siddhant-K-code/distill/pull/36))
+
+### Changed
+
+- **README** — Added Context Memory section with CLI/API/MCP examples, updated architecture diagram (Memory Store: shipped), updated roadmap status, expanded API endpoints table. ([#37](https://github.com/Siddhant-K-code/distill/pull/37), [#34](https://github.com/Siddhant-K-code/distill/pull/34))
+
+### Dependencies
+
+- Added `modernc.org/sqlite` — Pure Go SQLite driver (no CGO required)
+
+### Stats
+
+- 21 files changed, 3,617 insertions, 73 deletions
+- 3 new packages: `pkg/memory`, `pkg/sse`, `pkg/telemetry`
+- 11 new tests for memory store
+
+---
+
 ## [v0.2.0] - 2026-02-14
 
 Major release adding four new modules: semantic compression, KV caching, Prometheus observability, and YAML configuration.
