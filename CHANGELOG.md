@@ -2,7 +2,7 @@
 
 All notable changes to Distill are documented here.
 
-## [Unreleased]
+## [v0.4.0] - 2026-02-24
 
 ### Added
 
