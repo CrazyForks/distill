@@ -143,7 +143,7 @@ func (a *PipelineAPI) handlePipeline(w http.ResponseWriter, r *http.Request) {
 		Stats:  marshalStats(stats),
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // handleBatchSubmit accepts a new batch job.
@@ -170,7 +170,7 @@ func (a *PipelineAPI) handleBatchSubmit(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(BatchSubmitResponse{
+	_ = json.NewEncoder(w).Encode(BatchSubmitResponse{
 		JobID:  job.ID,
 		Status: string(job.Status),
 	})
@@ -221,17 +221,15 @@ func (a *PipelineAPI) handleBatchStatus(w http.ResponseWriter, _ *http.Request, 
 		resp.CompletedAt = job.CompletedAt.UTC().Format("2006-01-02T15:04:05Z")
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func (a *PipelineAPI) handleBatchResults(w http.ResponseWriter, _ *http.Request, id string) {
 	chunks, stats, err := a.processor.Results(id)
 	if err != nil {
-		code := http.StatusNotFound
+		code := http.StatusConflict
 		if err == batch.ErrJobNotFound {
 			code = http.StatusNotFound
-		} else {
-			code = http.StatusConflict
 		}
 		http.Error(w, err.Error(), code)
 		return
@@ -243,7 +241,7 @@ func (a *PipelineAPI) handleBatchResults(w http.ResponseWriter, _ *http.Request,
 		Stats:  marshalStats(stats),
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────

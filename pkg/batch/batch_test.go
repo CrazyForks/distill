@@ -1,7 +1,6 @@
 package batch
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -9,16 +8,7 @@ import (
 	"github.com/Siddhant-K-code/distill/pkg/types"
 )
 
-func makeChunks(n int) []types.Chunk {
-	chunks := make([]types.Chunk, n)
-	for i := range chunks {
-		chunks[i] = types.Chunk{
-			ID:   fmt.Sprintf("chunk-%d", i),
-			Text: "test chunk content for batch processing",
-		}
-	}
-	return chunks
-}
+
 
 func TestSubmitAndGet(t *testing.T) {
 	p := NewProcessor(Config{Workers: 1, QueueSize: 10, ResultTTL: time.Minute})
@@ -84,8 +74,8 @@ func TestList(t *testing.T) {
 	p := NewProcessor(Config{Workers: 1, QueueSize: 10, ResultTTL: time.Minute})
 	defer p.Stop()
 
-	p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "a", Text: "hello"}}, Options: pipeline.Options{}})
-	p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "b", Text: "world"}}, Options: pipeline.Options{}})
+	_, _ = p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "a", Text: "hello"}}, Options: pipeline.Options{}})
+	_, _ = p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "b", Text: "world"}}, Options: pipeline.Options{}})
 
 	// Wait briefly for processing.
 	time.Sleep(200 * time.Millisecond)
@@ -102,7 +92,7 @@ func TestQueueFull(t *testing.T) {
 	defer p.Stop()
 
 	// Fill the queue.
-	p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "a", Text: "x"}}, Options: pipeline.Options{}})
+	_, _ = p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "a", Text: "x"}}, Options: pipeline.Options{}})
 
 	// This should fail.
 	_, err := p.Submit(SubmitRequest{Chunks: []types.Chunk{{ID: "b", Text: "y"}}, Options: pipeline.Options{}})
