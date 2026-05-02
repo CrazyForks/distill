@@ -15,6 +15,6 @@ services:
       - key: DISTILL_API_KEYS
         sync: false  # Optional: comma-separated API keys for auth
       - key: GO_VERSION
-        value: 1.22.0
+        value: 1.24.2
     healthCheckPath: /health
     autoDeploy: true
