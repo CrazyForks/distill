@@ -61,7 +61,7 @@ type Client struct {
 // NewClient creates a new Cohere embedding client.
 func NewClient(cfg Config) (*Client, error) {
 	if cfg.APIKey == "" {
-		return nil, fmt.Errorf("Cohere API key is required")
+		return nil, fmt.Errorf("cohere API key is required")
 	}
 	if cfg.Model == "" {
 		cfg.Model = defaultModel
@@ -129,7 +129,7 @@ func (c *Client) EmbedBatch(ctx context.Context, texts []string) ([][]float32, e
 	if err != nil {
 		return nil, fmt.Errorf("cohere request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return nil, embedding.ErrRateLimited

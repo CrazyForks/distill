@@ -1,20 +1,16 @@
+version: "2"
+
 linters:
+  default: none
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
 
-linters-settings:
-  errcheck:
-    check-type-assertions: false
-    check-blank: false
-
 issues:
   exclude-rules:
-    # Test files: allow unchecked errors on t.Log, t.Error etc.
     - path: _test\.go
       linters:
         - errcheck
