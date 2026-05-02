@@ -8,56 +8,56 @@
 
 [![Build with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/siddhant-k-code/distill)
 
-**Context intelligence layer for AI agents.**
+**Open-source context preprocessing for LLM applications.**
 
-Deduplicates, compresses, and manages context across sessions - so your agents produce reliable, deterministic outputs. Includes a dedup pipeline with ~12ms overhead and persistent context memory with write-time dedup and hierarchical decay.
+Distill sits between your application and any LLM. It cleans up context before it's sent — deduplicating semantically redundant chunks, compressing conversation history as it ages, and placing cache markers on stable content so Anthropic's prompt cache actually fires.
 
-Less redundant data. Lower costs. Faster responses. Deterministic results.
+The result: fewer tokens sent, lower cost per request, and context windows that don't fill up with noise.
 
 **[Learn more →](https://distill.siddhantkhare.com)**
 
-> 📖 Distill implements the 4-layer context engineering stack (Cluster → Select → Rerank → Compress) described in **[The Agentic Engineering Guide](https://agents.siddhantkhare.com/05-context-engineering-stack/)** — a free, open book on AI agent infrastructure.
+> 📖 Distill implements the 4-layer context engineering stack described in **[The Agentic Engineering Guide](https://agents.siddhantkhare.com/05-context-engineering-stack/)** — a free, open book on AI agent infrastructure.
 
 ```
-Context sources → Distill → LLM
-(RAG, tools, memory, docs)    (reliable outputs)
+RAG / tools / memory / docs
+          ↓
+        Distill
+  (dedupe · compress · cache)
+          ↓
+         LLM
 ```
 
 ## The Problem
 
-LLM outputs are unreliable because context is polluted. "Garbage in, garbage out."
+30–40% of context assembled from multiple sources is semantically redundant. The same information arrives from docs, code, memory, and tool outputs — competing for attention in the same prompt.
 
-30-40% of context assembled from multiple sources is semantically redundant. Same information from docs, code, memory, and tools competing for attention. This leads to:
-
-- **Non-deterministic outputs** - Same workflow, different results
-- **Confused reasoning** - Signal diluted by repetition
-- **Production failures** - Works in demos, breaks at scale
-
-You can't fix unreliable outputs with better prompts. You need to fix the context that goes in.
+This causes non-deterministic outputs, confused reasoning, and failures that only show up at scale. Better prompts don't fix it. The context going in needs to be clean.
 
 ## How It Works
 
-Math, not magic. No LLM calls. Fully deterministic.
+No LLM calls. Fully deterministic. ~12ms overhead.
 
-| Step | What it does | Benefit |
-|------|--------------|---------|
-| **Deduplicate** | Remove redundant information across sources | More reliable outputs |
-| **Compress** | Keep what matters, remove the noise | Lower token costs |
-| **Summarize** | Condense older context intelligently | Longer sessions |
-| **Cache** | Instant retrieval for repeated patterns | Faster responses |
+| Stage | What it does |
+|-------|-------------|
+| **Deduplicate** | Cluster semantically similar chunks, keep one representative per cluster |
+| **Compress** | Extractive compression — remove noise, preserve signal |
+| **Summarize** | Progressively condense conversation history as turns age |
+| **Cache** | Annotate stable prefixes with `cache_control`, track TTL per prefix |
 
-### Pipeline
+All four stages chain together via `POST /v1/pipeline` or `distill pipeline` CLI.
+
+### Dedup pipeline
 
 ```
 Query → Over-fetch (50) → Cluster → Select → MMR Re-rank (8) → LLM
 ```
 
-1. **Over-fetch** - Retrieve 3-5x more chunks than needed
-2. **Cluster** - Group semantically similar chunks (agglomerative clustering)
-3. **Select** - Pick best representative from each cluster
-4. **MMR Re-rank** - Balance relevance and diversity
+1. **Over-fetch** — retrieve 3–5× more chunks than needed
+2. **Cluster** — group semantically similar chunks (agglomerative clustering)
+3. **Select** — pick the best representative from each cluster
+4. **MMR Re-rank** — balance relevance and diversity
 
-**Result:** Deterministic, diverse context in ~12ms. No LLM calls. Fully auditable.
+**Result:** Deterministic, diverse context. No LLM calls. Fully auditable.
 
 ## Installation
 
