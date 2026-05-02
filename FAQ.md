@@ -192,7 +192,7 @@ Larger context windows don't solve redundancy. If you stuff 50 chunks into a 128
 
 ### Is Distill open source?
 
-Yes, AGPL-3.0. The full pipeline, CLI, API server, MCP server, and all algorithms are open source. Commercial licensing is available for closed-source usage - contact siddhantkhare2694@gmail.com.
+Yes, MIT. The full pipeline, CLI, API server, MCP server, and all algorithms are open source. Free to use, modify, and distribute — including in commercial and closed-source products.
 
 ### What's on the roadmap?
 
