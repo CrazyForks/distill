@@ -10,13 +10,13 @@
 
 **Open-source context preprocessing for LLM applications.**
 
-Distill sits between your application and any LLM. It cleans up context before it's sent — deduplicating semantically redundant chunks, compressing conversation history as it ages, and placing cache markers on stable content so Anthropic's prompt cache actually fires.
+Distill sits between your application and any LLM. It cleans up context before it's sent: deduplicating semantically redundant chunks, compressing conversation history as it ages, and placing cache markers on stable content so Anthropic's prompt cache actually fires.
 
 The result: fewer tokens sent, lower cost per request, and context windows that don't fill up with noise.
 
 **[Learn more →](https://distill.siddhantkhare.com)**
 
-> 📖 Distill implements the 4-layer context engineering stack described in **[The Agentic Engineering Guide](https://agents.siddhantkhare.com/05-context-engineering-stack/)** — a free, open book on AI agent infrastructure.
+> 📖 Distill implements the 4-layer context engineering stack described in **[The Agentic Engineering Guide](https://agents.siddhantkhare.com/05-context-engineering-stack/)**, a free open book on AI agent infrastructure.
 
 ```
 RAG / tools / memory / docs
@@ -29,7 +29,7 @@ RAG / tools / memory / docs
 
 ## The Problem
 
-30–40% of context assembled from multiple sources is semantically redundant. The same information arrives from docs, code, memory, and tool outputs — competing for attention in the same prompt.
+30-40% of context assembled from multiple sources is semantically redundant. The same information arrives from docs, code, memory, and tool outputs, all competing for attention in the same prompt.
 
 This causes non-deterministic outputs, confused reasoning, and failures that only show up at scale. Better prompts don't fix it. The context going in needs to be clean.
 
@@ -40,7 +40,7 @@ No LLM calls. Fully deterministic. ~12ms overhead.
 | Stage | What it does |
 |-------|-------------|
 | **Deduplicate** | Cluster semantically similar chunks, keep one representative per cluster |
-| **Compress** | Extractive compression — remove noise, preserve signal |
+| **Compress** | Extractive compression to remove noise and preserve signal |
 | **Summarize** | Progressively condense conversation history as turns age |
 | **Cache** | Annotate stable prefixes with `cache_control`, track TTL per prefix |
 
@@ -52,10 +52,10 @@ All four stages chain together via `POST /v1/pipeline` or `distill pipeline` CLI
 Query → Over-fetch (50) → Cluster → Select → MMR Re-rank (8) → LLM
 ```
 
-1. **Over-fetch** — retrieve 3–5× more chunks than needed
-2. **Cluster** — group semantically similar chunks (agglomerative clustering)
-3. **Select** — pick the best representative from each cluster
-4. **MMR Re-rank** — balance relevance and diversity
+1. **Over-fetch** - retrieve 3-5x more chunks than needed
+2. **Cluster** - group semantically similar chunks (agglomerative clustering)
+3. **Select** - pick the best representative from each cluster
+4. **MMR Re-rank** - balance relevance and diversity
 
 **Result:** Deterministic, diverse context. No LLM calls. Fully auditable.
 
@@ -684,7 +684,7 @@ Record Anthropic API usage with `metrics.RecordCacheUsage(UsageRecord{...})` aft
 | `distill_cache_read_tokens_total` | Counter | Tokens read from Anthropic cache (charged at 0.10× input price) |
 | `distill_uncached_input_tokens_total` | Counter | Uncached input tokens (charged at 1.00×) |
 | `distill_cache_hit_rate` | Gauge | Rolling hit rate: `cache_read / (cache_read + cache_creation + input)` |
-| `distill_cache_write_efficiency` | Gauge | Reads/writes ratio — values < 1.0 mean cache writes that expire before being read |
+| `distill_cache_write_efficiency` | Gauge | Reads/writes ratio. Values below 1.0 mean cache writes that expire before being read |
 
 **Per-call-site hit rate tracking**
 
@@ -792,8 +792,8 @@ The `DecayWorker` emits typed events on every state transition so that cache bou
 
 | Event | When | Cache boundary action |
 |-------|------|-----------------------|
-| `EventCompressed` | Entry compressed to summary or keywords | Retreat boundary — cached prefix is now stale |
-| `EventEvicted` | Entry removed from store | Retreat boundary — entry no longer exists |
+| `EventCompressed` | Entry compressed to summary or keywords | Retreat boundary: cached prefix is now stale |
+| `EventEvicted` | Entry removed from store | Retreat boundary: entry no longer exists |
 | `EventStabilized` | Entry promoted to stable | Advance boundary to include entry |
 
 Register a handler on any `Store`:
@@ -813,8 +813,8 @@ Multiple handlers can be registered; they are called in registration order. Hand
 ```go
 result, _ := store.Recall(ctx, req)
 if result.CacheHint != nil {
-    // result.CacheHint.StableEntryIDs — IDs likely stable this turn
-    // result.CacheHint.ConfidenceScore — mean relevance of returned entries
+    // result.CacheHint.StableEntryIDs - IDs likely stable this turn
+    // result.CacheHint.ConfidenceScore - mean relevance of returned entries
 }
 ```
 
@@ -861,7 +861,7 @@ session:
 KV cache for repeated context patterns (system prompts, tool definitions, boilerplate). Sub-millisecond retrieval for cache hits.
 
 - **MemoryCache** - In-memory LRU with TTL, configurable size limits (entries and bytes), background cleanup
-- **PatternDetector** - Identifies cacheable content and emits `CacheAnnotation` per chunk. Use `AnnotateChunksForCache` to get a `CacheControlPlan` — up to 4 `cache_control` markers (Anthropic's limit) placed at the highest-token-count stable chunks. Auto-placement is skipped when the caller has already set markers manually.
+- **PatternDetector** - Identifies cacheable content and emits `CacheAnnotation` per chunk. Use `AnnotateChunksForCache` to get a `CacheControlPlan` with up to 4 `cache_control` markers (Anthropic's limit) placed at the highest-token-count stable chunks. Auto-placement is skipped when the caller has already set markers manually.
 - **PrefixPartition** - Splits a chunk slice into a frozen cache prefix and a dedup-eligible suffix. Used by the `preserve_cache_prefix` dedup option to prevent Distill from reordering chunks that appear before a `cache_control` breakpoint.
 - **StabilityValidator** - Tracks prefix hashes across requests and detects dynamic content bleeding into cached prefixes. Reports instability with a likely cause and supports static text analysis for pre-flight checks.
 - **RedisCache** - Interface for distributed deployments (requires external Redis)
@@ -908,7 +908,7 @@ tracker := cache.NewTTLTracker(0) // 0 = use AnthropicCacheTTL (5 min)
 // After each request that carries a cache_control marker:
 wasAlive := tracker.Touch(plan.PrefixHash)
 if !wasAlive {
-    log.Warn("cache cold start — first request or TTL expired")
+    log.Warn("cache cold start: first request or TTL expired")
 }
 
 // For batch workloads: latest safe time to send next request
@@ -922,15 +922,15 @@ fmt.Printf("hits: %d  misses: %d  alive: %v\n", entry.HitCount, entry.MissCount,
 
 #### Prefix stability validator
 
-Detects dynamic content (timestamps, request IDs, UUIDs) bleeding into cached prefixes — the most common cause of 0% cache hit rates:
+Detects dynamic content (timestamps, request IDs, UUIDs) bleeding into cached prefixes, which is the most common cause of 0% cache hit rates:
 
 ```go
 validator := cache.NewStabilityValidator(cache.DefaultStabilityConfig())
 
-// Runtime check — call on every request
+// Runtime check, call on every request
 issues := validator.Check("agent/planner.go:84", chunks)
 for _, issue := range issues {
-    log.Warnf("%s", issue) // "cache-prefix-unstable: stability=12% — likely dynamic interpolation: request id"
+    log.Warnf("%s", issue) // "cache-prefix-unstable: stability=12%, likely dynamic interpolation: request id"
 }
 
 // Static pre-flight check
@@ -1178,7 +1178,7 @@ For commercial licensing, contact: siddhantkhare2694@gmail.com
 
 - [Website](https://distill.siddhantkhare.com)
 - [Playground](https://distill.siddhantkhare.com/playground)
-- [The Agentic Engineering Guide](https://agents.siddhantkhare.com) — the book behind the concepts Distill implements
+- [The Agentic Engineering Guide](https://agents.siddhantkhare.com) - the book behind the concepts Distill implements
 - [FAQ](FAQ.md)
 - [Blog Post](https://dev.to/siddhantkcode/the-engineering-guide-to-context-window-efficiency-202b)
 - [MCP Configuration](mcp/README.md)
